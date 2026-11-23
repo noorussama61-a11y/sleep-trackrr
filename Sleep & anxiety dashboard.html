@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sleep & anxiety dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@300;400&display=swap">
+<style>
+:root{--bg:#EDF1F3;--ink:#18232E;--mute:#5B6B79;--line:#CBD5DC;--deep:#34488A;--light:#B3C0DC;--anx:#8A4F7D;--btn:#18232E;--btnink:#EDF1F3;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11161D;--ink:#E4EAF1;--mute:#93A1AF;--line:#2B3644;--deep:#97AEF0;--light:#33415C;--anx:#D9A3CC;--btn:#E4EAF1;--btnink:#11161D;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#11161D;--ink:#E4EAF1;--mute:#93A1AF;--line:#2B3644;--deep:#97AEF0;--light:#33415C;--anx:#D9A3CC;--btn:#E4EAF1;--btnink:#11161D;color-scheme:dark}
+*{box-sizing:border-box}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:980px;margin:0 auto;padding:28px 20px 56px}
+h1{font:300 40px/1.1 Newsreader,Georgia,serif;margin:0}
+.date{color:var(--mute);margin:4px 0 0}
+h2{font-size:16px;font-weight:600;margin:0 0 2px}
+.hint{color:var(--mute);font-size:14px;margin:0}
+section{border-top:1px solid var(--line);margin-top:26px;padding-top:18px}
+.grid{display:grid;grid-template-columns:1fr;gap:0 44px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:0 24px;margin-top:22px}
+.kpi{padding:14px 0 6px;border-top:1px solid var(--line)}
+.kpi b{display:block;font:300 40px/1.1 Newsreader,Georgia,serif}
+.kpi span{font-size:14px;color:var(--mute)}
+.kpi em{display:block;font-style:normal;font-size:13px;color:var(--mute)}
+@media (min-width:760px){.grid{grid-template-columns:1fr 1fr}.wide{grid-column:1/-1}.kpis{grid-template-columns:repeat(4,1fr)}.qs{display:grid;grid-template-columns:1fr 1fr;gap:0 44px}}
+svg{width:100%;height:auto;display:block;margin-top:12px}
+svg text{fill:var(--mute);font-size:10px;font-family:inherit}
+svg text.now{fill:var(--ink);font-weight:700}
+.legend{font-size:13px;color:var(--mute);margin:8px 0 0}
+.insight{font-size:17px;margin:8px 0 0;max-width:62ch}
+.times{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px}
+.times label{display:block;font-size:14px;color:var(--mute);margin-bottom:4px}
+input[type=time]{font:inherit;font-size:20px;padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;background:transparent;color:var(--ink)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+.num{font:300 52px/1 Newsreader,Georgia,serif;letter-spacing:-.02em}
+.num small{font:400 20px Newsreader,Georgia,serif;color:var(--mute);margin-left:4px}
+.steps{display:flex;gap:10px}
+.steps button{width:48px;height:48px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font-size:24px;line-height:1;cursor:pointer}
+.steps button:active{background:var(--ink);color:var(--bg)}
+:focus-visible{outline:3px solid var(--deep);outline-offset:3px}
+.btn{margin-top:18px;width:100%;padding:14px;border:0;border-radius:10px;background:var(--btn);color:var(--btnink);font:600 16px system-ui,sans-serif;cursor:pointer}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.status{min-height:22px;color:var(--mute);font-size:14px;margin:6px 0 0;text-align:center}
+.opts{display:grid;grid-template-columns:repeat(var(--n,4),1fr);gap:6px;margin-top:6px}
+.opts label{position:relative;display:block}
+.opts input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.opts span{display:block;text-align:center;padding:9px 2px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;line-height:1.2}
+.opts input:checked+span{background:var(--anx);border-color:var(--anx);color:var(--btnink)}
+.opts input:focus-visible+span{outline:3px solid var(--deep);outline-offset:2px}
+fieldset{border:0;padding:0;margin:0 0 16px}
+legend{padding:0;font-size:15px}
+.plan{list-style:none;margin:14px 0 0;padding:0}
+.plan li{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}
+.plan li:last-child{border-bottom:1px solid var(--line)}
+.plan b{font:400 24px Newsreader,Georgia,serif}
+.plan span{color:var(--mute);font-size:14px;align-self:center}
+.score{font:300 32px/1.2 Newsreader,Georgia,serif;margin:8px 0 0}
+.note{color:var(--mute);font-size:13px;margin-top:32px;max-width:70ch}
+</style>
+</head>
+<body>
+<main>
+  <h1>Dashboard</h1>
+  <p class="date" id="date"></p>
+
+  <div class="kpis">
+    <div class="kpi"><span>Last night</span><b id="kSleep">–</b><em id="kSleepSub">Not logged yet</em></div>
+    <div class="kpi"><span>Deep sleep</span><b id="kDeep">–</b><em id="kDeepSub">of the night</em></div>
+    <div class="kpi"><span>7-day average</span><b id="kAvg">–</b><em id="kAvgSub">No nights logged</em></div>
+    <div class="kpi"><span>Anxiety today</span><b id="kAnx">–</b><em id="kAnxSub">No check-in yet</em></div>
+  </div>
+
+  <div class="grid">
+    <section>
+      <h2>Sleep, past 7 days</h2>
+      <div id="sleepChart"></div>
+      <p class="legend">Dark: deep sleep. Light: other sleep. Shaded band: 7 to 9 hours.</p>
+    </section>
+    <section>
+      <h2>Anxiety check-in score, past 7 days</h2>
+      <div id="anxChart"></div>
+      <p class="legend">Score out of 21. Lines mark 7 and 14.</p>
+    </section>
+
+    <section class="wide">
+      <h2>What your logs show</h2>
+      <p class="insight" id="insight"></p>
+    </section>
+
+    <section>
+      <h2>Log last night’s sleep</h2>
+      <p class="hint">Enter bedtime and wake-up time. The time asleep is calculated for you.</p>
+      <div class="times">
+        <div><label for="bed">Bedtime</label><input type="time" id="bed" value="23:00"></div>
+        <div><label for="wake">Wake-up</label><input type="time" id="wake" value="07:00"></div>
+      </div>
+      <div class="row"><div class="num" id="dur">8h 00m</div></div>
+      <p class="hint" style="margin-top:14px">Deep sleep, from your watch or tracker if you have one.</p>
+      <div class="row">
+        <div class="num"><span id="deepVal">1.5</span><small>h</small></div>
+        <div class="steps">
+          <button id="deepDown" aria-label="Decrease deep sleep by 15 minutes">−</button>
+          <button id="deepUp" aria-label="Increase deep sleep by 15 minutes">+</button>
+        </div>
+      </div>
+      <button class="btn" id="saveSleep">Save sleep</button>
+      <p class="status" id="sleepStatus" role="status"></p>
+    </section>
+
+    <section>
+      <h2>Plan tonight</h2>
+      <p class="hint">Sleep comes in cycles of about 90 minutes. Waking at the end of one tends to feel easier.</p>
+      <div class="opts" style="--n:2" id="mode">
+        <label><input type="radio" name="mode" value="bed" checked><span>I know my bedtime</span></label>
+        <label><input type="radio" name="mode" value="wake"><span>I know my wake-up time</span></label>
+      </div>
+      <div class="times"><div><label for="planTime" id="planLabel">Going to bed at</label><input type="time" id="planTime" value="23:00"></div></div>
+      <ul class="plan" id="plan"></ul>
+      <p class="hint" style="margin-top:10px">Assumes about 15 minutes to fall asleep. Real cycles vary from person to person.</p>
+    </section>
+
+    <section class="wide">
+      <h2>Anxiety check-in</h2>
+      <p class="hint">Think about today. How much did each of these apply to you?</p>
+      <div class="qs" id="qs" style="margin-top:16px"></div>
+      <p class="score" id="score"></p>
+      <button class="btn" id="saveQ" disabled>Save check-in</button>
+      <p class="status" id="qStatus" role="status"></p>
+    </section>
+  </div>
+
+  <p class="note">Entries stay on this device. The check-in is a self-reflection tool, not a diagnosis. If anxiety is high on most days or is getting in the way of your life, talk to a doctor or therapist.</p>
+</main>
+<script>
+(function(){
+  var KEY='sleep-dashboard-v2',mem={};
+  function load(){try{var v=JSON.parse(localStorage.getItem(KEY));if(v&&typeof v==='object')return v}catch(e){}return mem}
+  function store(o){mem=o;try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}}
+  function key(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+  function fmt(n){return String(Math.round(n*10)/10)}
+  function clamp(n,a,b){return Math.min(b,Math.max(a,n))}
+  function mins(t){var p=(t||'0:0').split(':');return +p[0]*60+ +p[1]}
+  function dur(b,w){return (mins(w)-mins(b)+1440)%1440}
+  function hm(m){return Math.floor(m/60)+'h '+String(Math.round(m%60)).padStart(2,'0')+'m'}
+  function clock(m){m=((Math.round(m)%1440)+1440)%1440;return new Date(2000,0,1,Math.floor(m/60),m%60).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}
+  function band(s){return s<=6?'Low':s<=13?'Moderate':'High'}
+  var $=function(id){return document.getElementById(id)};
+  var Q=['I felt nervous, on edge or keyed up.','I couldn’t stop or control my worrying.','I worried about many different things.','I had trouble relaxing.','I felt restless and found it hard to sit still.','I got irritable or snapped more easily than usual.','I felt dread, as if something bad might happen.'];
+  var OPT=['Not at all','A little','Quite a bit','Very much'];
+  var now=new Date(),todayKey=key(now),log=load(),t=log[todayKey]||{};
+  var st={bed:t.bed||'23:00',wake:t.wake||'07:00',deep:t.deep!=null?t.deep:1.5};
+  var ans=t.answers&&t.answers.length===7?t.answers.slice():[null,null,null,null,null,null,null];
+  $('date').textContent=now.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
+  $('bed').value=st.bed;$('wake').value=st.wake;
+
+  // check-in form
+  var qs=$('qs');
+  Q.forEach(function(q,i){
+    var f=document.createElement('fieldset'),lg=document.createElement('legend'),o=document.createElement('div');
+    lg.textContent=q;o.className='opts';
+    OPT.forEach(function(name,v){
+      var l=document.createElement('label'),r=document.createElement('input'),s=document.createElement('span');
+      r.type='radio';r.name='q'+i;r.value=v;r.checked=ans[i]===v;s.textContent=name;
+      r.addEventListener('change',function(){ans[i]=v;renderScore()});
+      l.appendChild(r);l.appendChild(s);o.appendChild(l);
+    });
+    f.appendChild(lg);f.appendChild(o);qs.appendChild(f);
+  });
+  function renderScore(){
+    var n=ans.filter(function(a){return a!==null}).length,sum=ans.reduce(function(a,b){return a+(b||0)},0);
+    $('saveQ').disabled=n<7;
+    $('score').textContent=n<7?n+' of 7 answered':'Score '+sum+' of 21: '+band(sum).toLowerCase();
+  }
+
+  // sleep log
+  function renderLog(){
+    var m=dur(st.bed,st.wake);st.deep=Math.min(st.deep,m/60);
+    $('dur').textContent=hm(m);$('deepVal').textContent=fmt(st.deep);
+  }
+  $('bed').addEventListener('input',function(e){st.bed=e.target.value||st.bed;renderLog()});
+  $('wake').addEventListener('input',function(e){st.wake=e.target.value||st.wake;renderLog()});
+  $('deepUp').addEventListener('click',function(){st.deep=clamp(st.deep+.25,0,dur(st.bed,st.wake)/60);renderLog()});
+  $('deepDown').addEventListener('click',function(){st.deep=clamp(st.deep-.25,0,24);renderLog()});
+  function saved(id,msg){$(id).textContent=msg;setTimeout(function(){$(id).textContent=''},2500)}
+  $('saveSleep').addEventListener('click',function(){
+    var l=load();l[todayKey]=Object.assign({},l[todayKey],{bed:st.bed,wake:st.wake,sleep:dur(st.bed,st.wake)/60,deep:st.deep});
+    store(l);dash();saved('sleepStatus','Sleep saved');
+  });
+  $('saveQ').addEventListener('click',function(){
+    var l=load(),sum=ans.reduce(function(a,b){return a+b},0);
+    l[todayKey]=Object.assign({},l[todayKey],{answers:ans.slice(),score:sum});
+    store(l);dash();saved('qStatus','Check-in saved');
+  });
+
+  // plan tonight
+  function plan(){
+    var mode=document.querySelector('input[name=mode]:checked').value,base=mins($('planTime').value),html='';
+    $('planLabel').textContent=mode==='bed'?'Going to bed at':'Need to wake up at';
+    [4,5,6].forEach(function(c){
+      var len=c*90,at=mode==='bed'?base+15+len:base-15-len;
+      html+='<li><span>'+(mode==='bed'?'Wake at':'Go to bed at')+'</span><b>'+clock(at)+'</b><span>'+hm(len)+' of sleep</span></li>';
+    });
+    $('plan').innerHTML=html;
+  }
+  $('planTime').addEventListener('input',plan);
+  $('mode').addEventListener('change',plan);
+
+  // dashboard
+  function dash(){
+    log=load();var W=360,L=28,slot=(W-L)/7,days=[],i,d,e;
+    for(i=6;i>=0;i--){d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);days.push({d:d,e:log[key(d)]||{},now:i===0})}
+    var td=log[todayKey]||{};
+    // KPIs
+    $('kSleep').textContent=td.sleep!=null?hm(td.sleep*60):'–';
+    $('kSleepSub').textContent=td.sleep!=null?clock(mins(td.bed))+' to '+clock(mins(td.wake)):'Not logged yet';
+    $('kDeep').textContent=td.sleep>0?Math.round(td.deep/td.sleep*100)+'%':'–';
+    $('kDeepSub').textContent=td.sleep>0?fmt(td.deep)+' h of the night':'of the night';
+    var sl=days.filter(function(x){return x.e.sleep!=null}),avg=sl.reduce(function(a,x){return a+x.e.sleep},0)/(sl.length||1);
+    $('kAvg').textContent=sl.length?hm(avg*60):'–';
+    $('kAvgSub').textContent=sl.length?'across '+sl.length+(sl.length===1?' night':' nights'):'No nights logged';
+    $('kAnx').textContent=td.score!=null?td.score+'/21':'–';
+    $('kAnxSub').textContent=td.score!=null?band(td.score):'No check-in yet';
+    // sleep chart
+    function y(h){return 140-Math.min(h,10)*13}
+    var s='<svg viewBox="0 0 360 165" role="img" aria-label="Sleep hours for the past 7 days"><rect x="'+L+'" y="'+y(9)+'" width="'+(W-L)+'" height="'+(y(7)-y(9))+'" style="fill:var(--deep);opacity:.13"/>';
+    [0,5,10].forEach(function(h){s+='<line x1="'+L+'" x2="'+W+'" y1="'+y(h)+'" y2="'+y(h)+'" style="stroke:var(--line)"/><text x="'+(L-6)+'" y="'+(y(h)+3)+'" text-anchor="end">'+h+'</text>'});
+    days.forEach(function(x,k){
+      var cx=L+slot*k+slot/2;
+      if(x.e.sleep!=null){
+        var bh=140-y(x.e.sleep),dh=x.e.sleep>0?bh*x.e.deep/x.e.sleep:0;
+        s+='<rect x="'+(cx-12)+'" y="'+y(x.e.sleep)+'" width="24" height="'+bh+'" rx="3" style="fill:var(--light)"/><rect x="'+(cx-12)+'" y="'+(140-dh)+'" width="24" height="'+dh+'" rx="3" style="fill:var(--deep)"/><text x="'+cx+'" y="'+(y(x.e.sleep)-4)+'" text-anchor="middle">'+fmt(x.e.sleep)+'</text>';
+      }
+      s+='<text x="'+cx+'" y="157" text-anchor="middle"'+(x.now?' class="now"':'')+'>'+x.d.toLocaleDateString(undefined,{weekday:'short'})+'</text>';
+    });
+    $('sleepChart').innerHTML=s+'</svg>';
+    // anxiety chart
+    function ay(v){return 105-v*4.2}
+    var a='<svg viewBox="0 0 360 140" role="img" aria-label="Anxiety check-in score for the past 7 days">',path='',prev=false;
+    [0,7,14,21].forEach(function(v){a+='<line x1="'+L+'" x2="'+W+'" y1="'+ay(v)+'" y2="'+ay(v)+'" style="stroke:var(--line)"/><text x="'+(L-6)+'" y="'+(ay(v)+3)+'" text-anchor="end">'+v+'</text>'});
+    days.forEach(function(x,k){
+      var cx=L+slot*k+slot/2;
+      if(x.e.score!=null){path+=(prev?'L':'M')+cx+' '+ay(x.e.score)+' ';prev=true}else prev=false;
+    });
+    a+='<path d="'+path+'" fill="none" stroke-width="2" style="stroke:var(--anx)"/>';
+    days.forEach(function(x,k){
+      var cx=L+slot*k+slot/2;
+      if(x.e.score!=null)a+='<circle cx="'+cx+'" cy="'+ay(x.e.score)+'" r="4.5" style="fill:var(--anx)"/><text x="'+cx+'" y="'+(ay(x.e.score)-9)+'" text-anchor="middle">'+x.e.score+'</text>';
+      a+='<text x="'+cx+'" y="130" text-anchor="middle"'+(x.now?' class="now"':'')+'>'+x.d.toLocaleDateString(undefined,{weekday:'short'})+'</text>';
+    });
+    $('anxChart').innerHTML=a+'</svg>';
+    // insight
+    var all=Object.keys(log).map(function(k){return log[k]}).filter(function(x){return x.sleep!=null&&x.score!=null});
+    var lo=all.filter(function(x){return x.sleep<7}),hi=all.filter(function(x){return x.sleep>=7});
+    function mean(arr){return arr.reduce(function(a,x){return a+x.score},0)/arr.length}
+    $('insight').textContent=(lo.length>=2&&hi.length>=2)
+      ?'On days after under 7 hours of sleep, your check-in score averaged '+fmt(mean(lo))+'. After 7 hours or more, it averaged '+fmt(mean(hi))+'. This is a pattern in your own logs, not proof that one causes the other.'
+      :'Log sleep and a check-in on several days, including some short nights and some long ones. Your sleep and anxiety scores will be compared here.';
+  }
+  renderLog();renderScore();plan();dash();
+})();
+</script>
+</body>
+</html>
